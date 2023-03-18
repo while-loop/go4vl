@@ -50,6 +50,7 @@ const (
 	CapTouch              uint32 = C.V4L2_CAP_TOUCH
 	CapIOMediaController  uint32 = C.V4L2_CAP_IO_MC
 	CapDeviceCapabilities uint32 = C.V4L2_CAP_DEVICE_CAPS
+	CapDeviceTimePerFrame uint32 = C.V4L2_CAP_TIMEPERFRAME
 )
 
 type CapabilityDesc struct {
@@ -184,6 +185,11 @@ func (c Capability) IsReadWriteSupported() bool {
 // IsStreamingSupported returns caps & CapStreaming
 func (c Capability) IsStreamingSupported() bool {
 	return c.Capabilities&CapStreaming != 0
+}
+
+// IsFrameRateSupported returns caps & CapDeviceTimePerFrame
+func (c Capability) IsFrameRateSupported() bool {
+	return c.Capabilities&CapDeviceTimePerFrame != 0
 }
 
 // IsDeviceCapabilitiesProvided returns true if the device returns

@@ -101,13 +101,15 @@ func Open(path string, options ...Option) (*Device, error) {
 	}
 
 	// set fps
-	if dev.config.fps != 0 {
-		if err := dev.SetFrameRate(dev.config.fps); err != nil {
-			return nil, fmt.Errorf("device open: %s: set fps: %w", path, err)
-		}
-	} else {
-		if dev.config.fps, err = dev.GetFrameRate(); err != nil {
-			return nil, fmt.Errorf("device open: %s: get fps: %w", path, err)
+	if dev.cap.IsFrameRateSupported() {
+		if dev.config.fps != 0 {
+			if err := dev.SetFrameRate(dev.config.fps); err != nil {
+				return nil, fmt.Errorf("device open: %s: set fps: %w", path, err)
+			}
+		} else {
+			if dev.config.fps, err = dev.GetFrameRate(); err != nil {
+				return nil, fmt.Errorf("device open: %s: get fps: %w", path, err)
+			}
 		}
 	}
 
@@ -277,7 +279,7 @@ func (d *Device) SetStreamParam(param v4l2.StreamParam) error {
 
 // SetFrameRate sets the FPS rate value of the device
 func (d *Device) SetFrameRate(fps uint32) error {
-	if !d.cap.IsStreamingSupported() {
+	if !d.cap.IsStreamingSupported() || !d.cap.IsFrameRateSupported() {
 		return fmt.Errorf("set frame rate: %w", v4l2.ErrorUnsupportedFeature)
 	}
 
@@ -299,6 +301,10 @@ func (d *Device) SetFrameRate(fps uint32) error {
 
 // GetFrameRate returns the FPS value for the device
 func (d *Device) GetFrameRate() (uint32, error) {
+	if !d.cap.IsFrameRateSupported() {
+		return 0, fmt.Errorf("get frame rate: %w", v4l2.ErrorUnsupportedFeature)
+	}
+
 	if d.config.fps == 0 {
 		param, err := d.GetStreamParam()
 		if err != nil {
